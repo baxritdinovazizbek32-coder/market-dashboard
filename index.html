@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian Markets — Bozor tahlili</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0B0E14; color:#E5E7EB; font-family:'Inter',sans-serif; }
+  .ticker-wrap { background:#141822; border-bottom:1px solid #232838; overflow:hidden; white-space:nowrap; }
+  .ticker-track { display:inline-block; padding:8px 0; animation: scroll 38s linear infinite; }
+  @keyframes scroll { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+  .tk-item { font-family:'JetBrains Mono',monospace; font-size:12.5px; margin-right:34px; color:#8B92A5; }
+  .tk-name { margin-right:8px; }
+  .tk-pct { font-weight:700; }
+  header.hero { padding:28px 20px 20px; border-bottom:1px solid #1B2030; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
+  .brand h1 { font-family:'Fraunces',serif; font-weight:700; font-size:24px; margin:0; }
+  .brand .sub { color:#6E7686; font-size:12px; font-family:'JetBrains Mono',monospace; margin-top:4px;}
+  .badge { display:flex; align-items:center; gap:6px; font-size:12px; padding:6px 10px; border-radius:20px; background:#141822; border:1px solid #232838; color:#9BE59B; }
+  .btn { font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid #2A3042; background:#161B27; color:#E5E7EB; cursor:pointer; }
+  .btn.primary { background:#E8A33D; color:#161200; border-color:#E8A33D; }
+  main { padding:20px; display:grid; grid-template-columns: 1fr; gap:18px; max-width:1100px; margin:0 auto;}
+  @media (min-width: 880px) { main { grid-template-columns: 1.5fr 1fr; } }
+  .panel { background:#12161F; border:1px solid #1E2432; border-radius:12px; padding:16px 18px; }
+  .panel h2 { font-family:'Fraunces',serif; font-weight:600; color:#C9CDD8; text-transform:uppercase; font-size:12px; margin:0 0 14px;}
+  .idx-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+  .idx-card { background:#161B27; border:1px solid #232838; border-radius:9px; padding:12px; }
+  .idx-card .nm { font-size:11.5px; color:#8B92A5; margin-bottom:6px; }
+  .idx-card .val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; }
+  .idx-card .pc { font-family:'JetBrains Mono',monospace; font-size:12px; margin-top:4px; }
+  .sector-row { display:flex; align-items:center; gap:10px; margin:9px 0; font-size:13px; }
+  .sector-row .label { width:150px; flex-shrink:0; color:#C9CDD8; }
+  .bar-bg { flex:1; height:7px; background:#1B2030; border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; }
+  .sector-row .val { width:50px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .news-item { padding:11px 0; border-bottom:1px solid #1B2030; }
+  .news-tag { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#E8A33D; }
+  .news-item p { margin:5px 0 0; font-size:13.5px; line-height:1.5; color:#D6D9E0; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; color:#6E7686; padding:6px; border-bottom:1px solid #232838; }
+  td { padding:8px 6px; font-size:13px; border-bottom:1px solid #171B27; }
+  td.num { font-family:'JetBrains Mono',monospace; text-align:right; }
+  .type-pill { font-size:10px; padding:2px 7px; border-radius:10px; background:#1B2030; color:#8B92A5; }
+  .del-btn { background:none; border:none; color:#5c6274; cursor:pointer; }
+  .add-row { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
+  .add-row input, .add-row select { background:#161B27; border:1px solid #2A3042; color:#E5E7EB; border-radius:7px; padding:7px; font-size:12.5px; width:90px; }
+  .notice { font-size:11.5px; color:#6E7686; margin-top:10px; line-height:1.5; }
+  .footer-note { padding:18px 20px 40px; color:#5c6274; font-size:12px; border-top:1px solid #1B2030; margin-top:6px; text-align:center;}
+  #adminExtra { display:none; }
+</style>
+</head>
+<body>
+
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"></div></div>
+
+<header class="hero">
+  <div class="brand">
+    <h1>Meridian Markets</h1>
+    <div class="sub">XALQARO BOZOR TAHLILI &middot; demo</div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;">
+    <div class="badge">Demo rejimi</div>
+    <button class="btn" id="adminToggle" onclick="toggleAdmin()">Admin panel</button>
+  </div>
+</header>
+
+<main>
+  <div style="display:flex;flex-direction:column;gap:18px;">
+    <div class="panel">
+      <h2>Asosiy indekslar</h2>
+      <div class="idx-grid" id="indicesGrid"></div>
+    </div>
+    <div class="panel">
+      <h2>Sektorlar bo'yicha holat</h2>
+      <div id="sectorsList"></div>
+    </div>
+    <div class="panel">
+      <h2>Bozor yangiliklari</h2>
+      <div id="newsList"></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>Kuzatuv ro'yxati (Watchlist)</h2>
+    <table>
+      <thead><tr><th>Belgi</th><th>Nomi</th><th style="text-align:right">Narx</th><th style="text-align:right">O'zg.</th><th id="thAction"></th></tr></thead>
+      <tbody id="watchlistBody"></tbody>
+    </table>
+    <div id="adminExtra">
+      <div class="add-row">
+        <input id="fSym" placeholder="Belgi">
+        <input id="fName" placeholder="Nomi" style="width:110px">
+        <input id="fPrice" placeholder="Narx" type="number">
+        <input id="fPct" placeholder="% o'zg." type="number">
+        <select id="fType"><option>Aksiya</option><option>Obligatsiya</option><option>Kripto</option><option>Tovar</option></select>
+        <button class="btn primary" onclick="addItem()">Qo'shish</button>
+      </div>
+      <div class="notice">Bu o'zgarishlar faqat sizning brauzeringizda (shu qurilmada) saqlanadi. Boshqa odam saytga kirganda buni ko'rmaydi — buni hamma uchun umumiy qilish uchun ma'lumotlar bazasi kerak.</div>
+    </div>
+  </div>
+</main>
+
+<div class="footer-note">Meridian Markets — namunaviy panel. Raqamlar 2026-yil 23–24 iyul bozor holatiga asoslangan namuna, jonli oqim ulanmagan.</div>
+
+<script>
+const INDICES = [
+  {name:"S&P 500", value:7408.30, pct:-1.21},
+  {name:"Dow Jones", value:51711.65, pct:-0.97},
+  {name:"Nasdaq", value:25137.69, pct:-2.15},
+  {name:"Nikkei 225", value:66325, pct:0.32},
+  {name:"Hang Seng", value:24997, pct:0.42},
+];
+const SECTORS = [
+  {name:"Communication Serv.", pct:-5.2},
+  {name:"Cons. Discretionary", pct:-5.1},
+  {name:"Information Tech.", pct:-2.4},
+  {name:"Cons. Staples", pct:-1.1},
+  {name:"Industrials", pct:0.3},
+  {name:"Energy", pct:1.8},
+  {name:"Utilities", pct:0.6},
+].sort((a,b)=>b.pct-a.pct);
+const NEWS = [
+  {tag:"EQUITIES", h:"Wall Street ozaytirilgan savdoda ko'tarildi — neft narxi pasayishi va Eron-AQSH muzokaralari umidi inflyatsiya tashvishlarini yumshatdi."},
+  {tag:"EARNINGS", h:"Alphabet daromadlari kutilganidan yuqori chiqdi, biroq 2026 kapital xarajatlar prognozi oshirilgani sotuvni kuchaytirdi."},
+  {tag:"ENERGY", h:"Brent nefti 100 dollar chegarasidan pastga tushdi, Qizil dengizdagi keskinlik davom etayotgan paytda."},
+  {tag:"TECH", h:"Intel aksiyalari kuchli daromad prognozidan so'ng savdo oldida ko'tarildi."},
+  {tag:"MACRO", h:"Bozor ishtirokchilari uy-joy savdosi va PMI ma'lumotlarini, FRS signallarini kuzatmoqda."},
+];
+let watchlist = JSON.parse(localStorage.getItem('watchlist') || 'null') || [
+  {symbol:"AAPL", name:"Apple Inc.", price:231.42, pct:0.8, type:"Aksiya"},
+  {symbol:"GOOGL", name:"Alphabet Inc.", price:178.65, pct:-6.9, type:"Aksiya"},
+  {symbol:"US10Y", name:"AQSH 10-yillik obligatsiya", price:4.21, pct:-0.05, type:"Obligatsiya"},
+  {symbol:"BTC", name:"Bitcoin", price:118420, pct:2.3, type:"Kripto"},
+  {symbol:"XAU", name:"Oltin (unsiya)", price:2695.10, pct:0.4, type:"Tovar"},
+];
+let adminMode = false;
+
+function color(p){ return p>=0 ? "#4ADE80" : "#F87171"; }
+
+function renderTicker(){
+  const items = [...INDICES, ...SECTORS];
+  const html = items.map(it => `<span class="tk-item"><span class="tk-name">${it.name}</span><span class="tk-pct" style="color:${color(it.pct)}">${it.pct>=0?"▲":"▼"} ${Math.abs(it.pct).toFixed(2)}%</span></span>`).join("");
+  document.getElementById('tickerTrack').innerHTML = html + html;
+}
+
+function renderIndices(){
+  document.getElementById('indicesGrid').innerHTML = INDICES.map(i => `
+    <div class="idx-card">
+      <div class="nm">${i.name}</div>
+      <div class="val">${i.value.toLocaleString()}</div>
+      <div class="pc" style="color:${color(i.pct)}">${i.pct>=0?"+":""}${i.pct.toFixed(2)}%</div>
+    </div>`).join("");
+}
+
+function renderSectors(){
+  document.getElementById('sectorsList').innerHTML = SECTORS.map(s => `
+    <div class="sector-row">
+      <div class="label">${s.name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,Math.abs(s.pct)*14)}%;background:${color(s.pct)}"></div></div>
+      <div class="val" style="color:${color(s.pct)}">${s.pct>=0?"+":""}${s.pct.toFixed(1)}%</div>
+    </div>`).join("");
+}
+
+function renderNews(){
+  document.getElementById('newsList').innerHTML = NEWS.map(n => `
+    <div class="news-item"><span class="news-tag">${n.tag}</span><p>${n.h}</p></div>`).join("");
+}
+
+function renderWatchlist(){
+  document.getElementById('watchlistBody').innerHTML = watchlist.map(w => `
+    <tr>
+      <td>${w.symbol}<div><span class="type-pill">${w.type}</span></div></td>
+      <td>${w.name}</td>
+      <td class="num">${Number(w.price).toLocaleString(undefined,{maximumFractionDigits:2})}</td>
+      <td class="num" style="color:${color(w.pct)}">${w.pct>=0?"+":""}${Number(w.pct).toFixed(2)}%</td>
+      <td>${adminMode ? `<button class="del-btn" onclick="removeItem('${w.symbol}')">✕</button>` : ""}</td>
+    </tr>`).join("");
+}
+
+function save(){ localStorage.setItem('watchlist', JSON.stringify(watchlist)); }
+
+function addItem(){
+  const sym = document.getElementById('fSym').value.toUpperCase();
+  const price = parseFloat(document.getElementById('fPrice').value);
+  if(!sym || isNaN(price)) return;
+  watchlist.push({
+    symbol: sym,
+    name: document.getElementById('fName').value || sym,
+    price: price,
+    pct: parseFloat(document.getElementById('fPct').value) || 0,
+    type: document.getElementById('fType').value
+  });
+  save(); renderWatchlist();
+  document.getElementById('fSym').value=''; document.getElementById('fName').value='';
+  document.getElementById('fPrice').value=''; document.getElementById('fPct').value='';
+}
+
+function removeItem(sym){
+  watchlist = watchlist.filter(w => w.symbol !== sym);
+  save(); renderWatchlist();
+}
+
+function toggleAdmin(){
+  adminMode = !adminMode;
+  document.getElementById('adminExtra').style.display = adminMode ? 'block' : 'none';
+  document.getElementById('adminToggle').textContent = adminMode ? 'Admin: yoniq' : 'Admin panel';
+  document.getElementById('adminToggle').classList.toggle('primary', adminMode);
+  renderWatchlist();
+}
+
+renderTicker(); renderIndices(); renderSectors(); renderNews(); renderWatchlist();
+</script>
+</body>
+</html>
