@@ -107,6 +107,7 @@
 
 <script>
 const FINNHUB_KEY = "d9hqs01r01qjmfda40qgd9";
+const TWELVEDATA_KEY = "6e710a57718f44a2b680c1a10d4ce075";
 
 const SECTORS = [
   {name:"Communication Serv.", pct:-5.2},
@@ -133,10 +134,10 @@ function save(){ localStorage.setItem('watchlist_v2', JSON.stringify(watchlist))
 
 async function fetchStockQuote(symbol){
   try{
-    const r = await fetch(`https://finnhub.io/api/v1/quote?symbol=${symbol}&token=${FINNHUB_KEY}`);
+    const r = await fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${TWELVEDATA_KEY}`);
     const d = await r.json();
-    if(d.c === undefined || d.c === 0) return null;
-    return { price: d.c, pct: d.dp };
+    if(!d.close || d.status === "error") return null;
+    return { price: parseFloat(d.close), pct: parseFloat(d.percent_change) };
   } catch(e){ return null; }
 }
 
