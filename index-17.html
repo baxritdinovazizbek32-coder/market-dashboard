@@ -1,0 +1,723 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Meridian Markets — Bozor tahlili</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,700&family=JetBrains+Mono:wght@400;500;700&family=Inter:wght@400;500;600&display=swap');
+  * { box-sizing: border-box; }
+  body { margin:0; background:#0B0E14; color:#E5E7EB; font-family:'Inter',sans-serif; }
+  .ticker-wrap { background:#141822; border-bottom:1px solid #232838; overflow:hidden; white-space:nowrap; }
+  .ticker-track { display:inline-block; padding:8px 0; animation: scroll 38s linear infinite; }
+  @keyframes scroll { 0%{transform:translateX(0);} 100%{transform:translateX(-50%);} }
+  .tk-item { font-family:'JetBrains Mono',monospace; font-size:12.5px; margin-right:34px; color:#8B92A5; }
+  .tk-name { margin-right:8px; }
+  .tk-pct { font-weight:700; }
+  header.hero { padding:28px 20px 20px; border-bottom:1px solid #1B2030; display:flex; justify-content:space-between; align-items:flex-end; flex-wrap:wrap; gap:16px;}
+  .brand h1 { font-family:'Fraunces',serif; font-weight:700; font-size:24px; margin:0; }
+  .brand .sub { color:#6E7686; font-size:12px; font-family:'JetBrains Mono',monospace; margin-top:4px;}
+  .brand-row { display:flex; align-items:center; gap:16px; }
+  .logo-mark { position:relative; width:56px; height:56px; flex-shrink:0; }
+  .logo-mark .pulse { position:absolute; inset:0; border-radius:14px; transform:rotate(45deg); background:radial-gradient(circle, rgba(232,163,61,0.5), transparent 70%); animation: pulse 2.4s ease-out infinite; }
+  @keyframes pulse { 0%{ transform:rotate(45deg) scale(0.85); opacity:0.7; } 70%{ transform:rotate(45deg) scale(1.35); opacity:0; } 100%{ opacity:0; } }
+  .logo-mark .diamond { position:absolute; inset:6px; border-radius:12px; transform:rotate(45deg); background:linear-gradient(135deg, #F7D28C 0%, #E8A33D 45%, #A8630F 100%); box-shadow: inset 0 2px 4px rgba(255,255,255,0.35), inset 0 -3px 6px rgba(0,0,0,0.35), 0 4px 14px rgba(232,163,61,0.35); }
+  .logo-mark .glyph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
+  .logo-mark .orbit-dot { position:absolute; inset:-9px; animation: spin 5s linear infinite; }
+  .logo-mark .orbit-dot i { position:absolute; top:0; left:50%; width:5px; height:5px; margin-left:-2.5px; border-radius:50%; background:#F7D28C; box-shadow:0 0 6px 2px rgba(247,210,140,0.8); }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .badge { display:flex; align-items:center; gap:6px; font-size:12px; padding:6px 10px; border-radius:20px; background:#141822; border:1px solid #232838; color:#9BE59B; }
+  .btn { font-size:13px; font-weight:600; padding:8px 14px; border-radius:8px; border:1px solid #2A3042; background:#161B27; color:#E5E7EB; cursor:pointer; }
+  .btn.primary { background:#E8A33D; color:#161200; border-color:#E8A33D; }
+  .lang-switch { display:flex; gap:4px; background:#141822; border:1px solid #232838; border-radius:20px; padding:3px; }
+  .lang-btn { font-size:11.5px; font-weight:700; padding:5px 10px; border-radius:16px; border:none; background:transparent; color:#6E7686; cursor:pointer; font-family:'JetBrains Mono',monospace; }
+  .lang-btn.active { background:#E8A33D; color:#161200; }
+  main { padding:20px; display:grid; grid-template-columns: 1fr; gap:18px; max-width:1100px; margin:0 auto;}
+  @media (min-width: 880px) { main { grid-template-columns: 1.5fr 1fr; } }
+  .panel { background:#12161F; border:1px solid #1E2432; border-radius:12px; padding:16px 18px; }
+  .panel h2 { font-family:'Fraunces',serif; font-weight:600; color:#C9CDD8; text-transform:uppercase; font-size:12px; margin:0 0 14px;}
+  .idx-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(120px,1fr)); gap:10px; }
+  .idx-card { background:#161B27; border:1px solid #232838; border-radius:9px; padding:12px; }
+  .idx-card .nm { font-size:11.5px; color:#8B92A5; margin-bottom:6px; }
+  .idx-card .val { font-family:'JetBrains Mono',monospace; font-size:16px; font-weight:700; }
+  .idx-card .pc { font-family:'JetBrains Mono',monospace; font-size:12px; margin-top:4px; }
+  .sector-row { display:flex; align-items:center; gap:10px; margin:9px 0; font-size:13px; }
+  .sector-row .label { width:150px; flex-shrink:0; color:#C9CDD8; }
+  .bar-bg { flex:1; height:7px; background:#1B2030; border-radius:4px; overflow:hidden; }
+  .bar-fill { height:100%; border-radius:4px; }
+  .sector-row .val { width:50px; text-align:right; font-family:'JetBrains Mono',monospace; font-size:12px; }
+  .news-item { padding:11px 0; border-bottom:1px solid #1B2030; }
+  .news-tag { font-family:'JetBrains Mono',monospace; font-size:10.5px; color:#E8A33D; }
+  .news-item p { margin:5px 0 0; font-size:13.5px; line-height:1.5; color:#D6D9E0; }
+  .news-item a { color:#D6D9E0; text-decoration:none; }
+  .news-item a:hover { color:#E8A33D; }
+  table { width:100%; border-collapse:collapse; }
+  th { text-align:left; font-size:11px; text-transform:uppercase; color:#6E7686; padding:6px; border-bottom:1px solid #232838; }
+  td { padding:8px 6px; font-size:13px; border-bottom:1px solid #171B27; }
+  td.num { font-family:'JetBrains Mono',monospace; text-align:right; }
+  .type-pill { font-size:10px; padding:2px 7px; border-radius:10px; background:#1B2030; color:#8B92A5; }
+  .del-btn { background:none; border:none; color:#5c6274; cursor:pointer; }
+  .add-row { display:flex; gap:6px; margin-top:12px; flex-wrap:wrap; }
+  .add-row input, .add-row select { background:#161B27; border:1px solid #2A3042; color:#E5E7EB; border-radius:7px; padding:7px; font-size:12.5px; width:90px; }
+  .notice { font-size:11.5px; color:#6E7686; margin-top:10px; line-height:1.5; }
+  .footer-note { padding:18px 20px 40px; color:#5c6274; font-size:12px; border-top:1px solid #1B2030; margin-top:6px; text-align:center;}
+  #adminExtra { display:none; }
+  .loading { color:#6E7686; font-size:12px; font-family:'JetBrains Mono',monospace; }
+  .search-row { display:flex; gap:8px; margin-bottom:4px; }
+  .search-row input { flex:1; background:#161B27; border:1px solid #2A3042; color:#E5E7EB; border-radius:8px; padding:9px 12px; font-size:13.5px; }
+  .search-result { margin-top:10px; padding:10px 12px; background:#161B27; border:1px solid #232838; border-radius:9px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+  .currency-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(110px,1fr)); gap:10px; }
+  .currency-card { background:#161B27; border:1px solid #232838; border-radius:9px; padding:10px 12px; }
+  .currency-card .nm { font-size:11px; color:#8B92A5; }
+  .currency-card .val { font-family:'JetBrains Mono',monospace; font-size:15px; font-weight:700; margin-top:4px; }
+  .wl-row { cursor:pointer; }
+  .wl-row:hover { background:#141822; }
+  .chart-modal-overlay { display:none; position:fixed; inset:0; background:rgba(5,6,10,0.75); z-index:100; align-items:flex-end; justify-content:center; }
+  @media (min-width:700px){ .chart-modal-overlay{ align-items:center; } }
+  .chart-modal { background:#12161F; border:1px solid #232838; border-radius:16px 16px 0 0; width:100%; max-width:640px; max-height:88vh; overflow-y:auto; padding:20px; }
+  @media (min-width:700px){ .chart-modal{ border-radius:16px; } }
+  .chart-modal-head { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:14px; }
+  .chart-modal-head h3 { font-family:'Fraunces',serif; font-size:20px; margin:0; }
+  .chart-modal-head .cprice { font-family:'JetBrains Mono',monospace; font-size:15px; margin-top:4px; }
+  .chart-close { background:#161B27; border:1px solid #2A3042; color:#E5E7EB; border-radius:8px; width:32px; height:32px; cursor:pointer; font-size:16px; }
+  .chart-tabs { display:flex; gap:8px; margin-bottom:14px; }
+  .chart-tab { font-size:12.5px; padding:7px 13px; border-radius:20px; border:1px solid #2A3042; background:#161B27; color:#8B92A5; cursor:pointer; }
+  .chart-tab.active { background:#E8A33D; color:#161200; border-color:#E8A33D; font-weight:600; }
+  .chart-stats { display:flex; gap:18px; margin-top:14px; flex-wrap:wrap; }
+  .chart-stats div { font-size:11.5px; color:#6E7686; }
+  .chart-stats b { display:block; font-family:'JetBrains Mono',monospace; color:#E5E7EB; font-size:14px; margin-top:2px; }
+  .movers-grid { display:grid; grid-template-columns: 1fr 1fr; gap:14px; }
+  @media (max-width:480px){ .movers-grid{ grid-template-columns:1fr; } }
+  .movers-col h4 { font-size:11px; text-transform:uppercase; color:#8B92A5; margin:0 0 8px; font-family:'JetBrains Mono',monospace; letter-spacing:.4px; }
+  .mover-row { display:flex; justify-content:space-between; align-items:center; padding:8px 0; border-bottom:1px solid #1B2030; font-size:13px; cursor:pointer; }
+  .mover-row:last-child { border-bottom:none; }
+  .mover-row .mv-pct { font-family:'JetBrains Mono',monospace; font-weight:700; }
+  #splash { position:fixed; inset:0; z-index:999; background:#0B0E14; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:22px; transition:opacity 0.6s ease, visibility 0.6s ease; cursor:pointer; }
+  #splash.hide { opacity:0; visibility:hidden; pointer-events:none; }
+  #splash .splash-logo { position:relative; width:110px; height:110px; }
+  #splash .splash-logo .pulse { position:absolute; inset:0; border-radius:28px; transform:rotate(45deg); background:radial-gradient(circle, rgba(232,163,61,0.5), transparent 70%); animation: pulse 2.4s ease-out infinite; }
+  #splash .splash-logo .diamond { position:absolute; inset:12px; border-radius:24px; transform:rotate(45deg); background:linear-gradient(135deg, #F7D28C 0%, #E8A33D 45%, #A8630F 100%); box-shadow: inset 0 3px 8px rgba(255,255,255,0.35), inset 0 -6px 12px rgba(0,0,0,0.35), 0 8px 28px rgba(232,163,61,0.4); animation: scaleIn 0.9s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes scaleIn { 0%{ transform:rotate(45deg) scale(0); } 100%{ transform:rotate(45deg) scale(1); } }
+  #splash .splash-logo .glyph { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; z-index:2; }
+  #splash .splash-logo .orbit-dot { position:absolute; inset:-16px; animation: spin 5s linear infinite; }
+  #splash .splash-logo .orbit-dot i { position:absolute; top:0; left:50%; width:9px; height:9px; margin-left:-4.5px; border-radius:50%; background:#F7D28C; box-shadow:0 0 10px 3px rgba(247,210,140,0.8); }
+  #splash h2 { font-family:'Fraunces',serif; font-size:30px; margin:0; opacity:0; animation: fadeUp 0.8s ease 0.4s forwards; }
+  #splash .splash-sub { font-family:'JetBrains Mono',monospace; font-size:12px; color:#6E7686; letter-spacing:1px; opacity:0; animation: fadeUp 0.8s ease 0.6s forwards; }
+  #splash .splash-hint { position:absolute; bottom:34px; font-size:11.5px; color:#4A5064; opacity:0; animation: fadeUp 0.8s ease 1.4s forwards; }
+  @keyframes fadeUp { from{ opacity:0; transform:translateY(10px);} to{ opacity:1; transform:translateY(0);} }
+</style>
+</head>
+<body>
+
+<div id="splash" onclick="dismissSplash()">
+  <div class="splash-logo">
+    <div class="pulse"></div>
+    <div class="diamond"></div>
+    <div class="orbit-dot"><i></i></div>
+    <div class="glyph">
+      <svg width="46" height="46" viewBox="0 0 26 26" fill="none">
+        <path d="M4 20 L4 8 L9.5 16 L13 8 L16.5 16 L22 6" stroke="#161200" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+      </svg>
+    </div>
+  </div>
+  <div style="text-align:center;">
+    <h2>Meridian Markets</h2>
+    <div class="splash-sub" data-i18n="splashSub">XALQARO BOZOR TAHLILI YUKLANMOQDA...</div>
+  </div>
+  <div class="splash-hint" data-i18n="splashHint">Davom etish uchun bosing</div>
+</div>
+
+<div class="ticker-wrap"><div class="ticker-track" id="tickerTrack"><span class="tk-item loading">Yuklanmoqda...</span></div></div>
+
+<header class="hero">
+  <div class="brand">
+    <div class="brand-row">
+      <div class="logo-mark">
+        <div class="pulse"></div>
+        <div class="diamond"></div>
+        <div class="orbit-dot"><i></i></div>
+        <div class="glyph">
+          <svg width="26" height="26" viewBox="0 0 26 26" fill="none">
+            <path d="M4 20 L4 8 L9.5 16 L13 8 L16.5 16 L22 6" stroke="#161200" stroke-width="2.6" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <h1>Meridian Markets</h1>
+        <div class="sub" data-i18n="headerSub">XALQARO BOZOR TAHLILI &middot; jonli ma'lumot</div>
+      </div>
+    </div>
+  </div>
+  <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+    <div class="lang-switch" id="langSwitch">
+      <button data-lang="uz" class="lang-btn active">UZ</button>
+      <button data-lang="ru" class="lang-btn">RU</button>
+      <button data-lang="en" class="lang-btn">EN</button>
+      <button data-lang="zh" class="lang-btn">中文</button>
+    </div>
+    <div class="badge" id="liveBadge">Yuklanmoqda...</div>
+    <button class="btn" id="adminToggle" onclick="toggleAdmin()">Admin panel</button>
+  </div>
+</header>
+
+<main>
+  <div style="display:flex;flex-direction:column;gap:18px;">
+    <div class="panel">
+      <h2 data-i18n="searchTitle">Aktiv qidirish</h2>
+      <div class="search-row">
+        <input id="searchInput" data-i18n-placeholder="searchPlaceholder" placeholder="Belgi kiriting (masalan NFLX, MSFT)">
+        <button class="btn primary" data-i18n="searchBtn" onclick="searchSymbol()">Qidirish</button>
+      </div>
+      <div id="searchResult"></div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="moversTitle">🏆 So'nggi 7 kunlik eng katta harakatlar</h2>
+      <div class="movers-grid">
+        <div class="movers-col">
+          <h4 data-i18n="gainers">Eng ko'p o'sganlar</h4>
+          <div id="topGainers"><span class="loading">...</span></div>
+        </div>
+        <div class="movers-col">
+          <h4 data-i18n="losers">Eng ko'p tushganlar</h4>
+          <div id="topLosers"><span class="loading">...</span></div>
+        </div>
+      </div>
+      <div class="notice" data-i18n="moversNotice">Faqat kuzatuv ro'yxatidagi aktivlar orasida hisoblanadi, har 30 daqiqada avtomatik yangilanadi.</div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="pricesTitle">Kuzatuv ro'yxatidagi jonli narxlar</h2>
+      <div class="idx-grid" id="indicesGrid"><span class="loading">...</span></div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="currencyTitle">Valyuta kurslari (USD asosida)</h2>
+      <div class="currency-grid" id="currencyGrid"><span class="loading">...</span></div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="sectorsTitle">Sektorlar bo'yicha holat (namuna)</h2>
+      <div id="sectorsList"></div>
+      <div class="notice" data-i18n="sectorsNotice">Bepul tarifda sektor indekslari uchun jonli oqim mavjud emas, shuning uchun bu qism hozircha namunaviy.</div>
+    </div>
+    <div class="panel">
+      <h2 data-i18n="newsTitle">Jonli bozor yangiliklari</h2>
+      <div id="newsList"><span class="loading">...</span></div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2 data-i18n="watchlistTitle">Kuzatuv ro'yxati (Watchlist)</h2>
+    <table>
+      <thead><tr><th data-i18n="thSymbol">Belgi</th><th data-i18n="thName">Nomi</th><th style="text-align:right" data-i18n="thPrice">Narx</th><th style="text-align:right" data-i18n="thChange">O'zg.</th><th id="thAction"></th></tr></thead>
+      <tbody id="watchlistBody"></tbody>
+    </table>
+    <div id="adminExtra">
+      <div class="add-row">
+        <input id="fSym" data-i18n-placeholder="addSymPh" placeholder="Belgi (masalan MSFT)">
+        <input id="fName" data-i18n-placeholder="addNamePh" placeholder="Nomi" style="width:110px">
+        <select id="fType"><option value="Aksiya" data-i18n="typeStock">Aksiya</option><option value="Kripto" data-i18n="typeCrypto">Kripto</option><option value="Boshqa" data-i18n="typeOther">Boshqa</option></select>
+        <button class="btn primary" data-i18n="addBtn" onclick="addItem()">Qo'shish</button>
+      </div>
+      <div class="notice" data-i18n="adminNotice">Bu ro'yxat faqat sizning brauzeringizda (shu qurilmada) saqlanadi. "Aksiya" turi Finnhub orqali, "Kripto" turi CoinGecko orqali avtomatik narx oladi (belgi CoinGecko ID bo'lishi kerak, masalan "ethereum").</div>
+    </div>
+  </div>
+</main>
+
+<div class="footer-note" data-i18n="footerNote">Meridian Markets — Finnhub va CoinGecko orqali jonli ma'lumot. Bepul tarif tufayli yangilanish har necha soniyada kechikishi mumkin.</div>
+
+<div class="chart-modal-overlay" id="chartOverlay" onclick="if(event.target===this)closeChartModal()">
+  <div class="chart-modal">
+    <div class="chart-modal-head">
+      <div>
+        <h3 id="chartTitle">—</h3>
+        <div class="cprice" id="chartPrice">—</div>
+      </div>
+      <button class="chart-close" onclick="closeChartModal()">✕</button>
+    </div>
+    <div class="chart-tabs">
+      <button class="chart-tab active" data-type="line" data-i18n="tabLine" onclick="setChartType('line')">Chiziqli</button>
+      <button class="chart-tab" data-type="area" data-i18n="tabArea" onclick="setChartType('area')">Maydonli</button>
+      <button class="chart-tab" data-type="bar" data-i18n="tabBar" onclick="setChartType('bar')">Ustunli</button>
+    </div>
+    <div id="chartArea"><div class="loading">...</div></div>
+    <div class="chart-stats" id="chartStats"></div>
+  </div>
+</div>
+
+<script>
+const FINNHUB_KEY = "d9hqs01r01qjmfda40qgd9";
+const TWELVEDATA_KEY = "6e710a57718f44a2b680c1a10d4ce075";
+const MARKETAUX_KEY = "tnCwS5JPMwRPYzduh8sbXKFZCUypjLjmpkTmgBly";
+
+const I18N = {
+  uz: {
+    headerSub: "XALQARO BOZOR TAHLILI · jonli ma'lumot", splashSub: "XALQARO BOZOR TAHLILI YUKLANMOQDA...", splashHint: "Davom etish uchun bosing",
+    live: "🟢 Jonli ma'lumot", loading: "Yuklanmoqda...", admin: "Admin panel", adminOn: "Admin: yoniq",
+    searchTitle: "Aktiv qidirish", searchPlaceholder: "Belgi kiriting (masalan NFLX, MSFT)", searchBtn: "Qidirish",
+    searching: "Qidirilmoqda...", notFound: "Topilmadi. Belgini tekshiring (masalan AAPL, TSLA).", searchErr: "Xatolik yuz berdi, qayta urinib ko'ring.", added: "Qo'shildi ✓", addBtnResult: "+ Qo'shish",
+    moversTitle: "🏆 So'nggi 7 kunlik eng katta harakatlar", gainers: "Eng ko'p o'sganlar", losers: "Eng ko'p tushganlar", moversNotice: "Faqat kuzatuv ro'yxatidagi aktivlar orasida hisoblanadi, har 30 daqiqada avtomatik yangilanadi.", noData: "Ma'lumot yo'q",
+    pricesTitle: "Kuzatuv ro'yxatidagi jonli narxlar", notLoaded: "yuklanmadi",
+    currencyTitle: "Valyuta kurslari (USD asosida)", currencyErr: "Valyuta kurslarini yuklab bo'lmadi.",
+    sectorsTitle: "Sektorlar bo'yicha holat (namuna)", sectorsNotice: "Bepul tarifda sektor indekslari uchun jonli oqim mavjud emas, shuning uchun bu qism hozircha namunaviy.",
+    newsTitle: "Jonli bozor yangiliklari", newsErr: "Yangiliklarni yuklab bo'lmadi.",
+    watchlistTitle: "Kuzatuv ro'yxati (Watchlist)", thSymbol: "Belgi", thName: "Nomi", thPrice: "Narx", thChange: "O'zg.",
+    addSymPh: "Belgi (masalan MSFT)", addNamePh: "Nomi", addBtn: "Qo'shish",
+    adminNotice: "Bu ro'yxat faqat sizning brauzeringizda (shu qurilmada) saqlanadi. \"Aksiya\" turi Twelve Data orqali, \"Kripto\" turi CoinGecko orqali avtomatik narx oladi.",
+    typeStock: "Aksiya", typeCrypto: "Kripto", typeOther: "Boshqa",
+    footerNote: "Meridian Markets — Twelve Data, CoinGecko va Marketaux orqali jonli ma'lumot.",
+    tabLine: "Chiziqli", tabArea: "Maydonli", tabBar: "Ustunli",
+    statLow: "Davr eng pasti", statHigh: "Davr eng yuqorisi", statChange: "Davr o'zgarishi", chartErr: "Grafikni yuklab bo'lmadi."
+  },
+  ru: {
+    headerSub: "МЕЖДУНАРОДНЫЙ АНАЛИЗ РЫНКА · live данные", splashSub: "ЗАГРУЗКА АНАЛИЗА РЫНКА...", splashHint: "Нажмите, чтобы продолжить",
+    live: "🟢 Живые данные", loading: "Загрузка...", admin: "Админ-панель", adminOn: "Админ: вкл",
+    searchTitle: "Поиск актива", searchPlaceholder: "Введите тикер (напр. NFLX, MSFT)", searchBtn: "Искать",
+    searching: "Поиск...", notFound: "Не найдено. Проверьте тикер (напр. AAPL, TSLA).", searchErr: "Произошла ошибка, попробуйте снова.", added: "Добавлено ✓", addBtnResult: "+ Добавить",
+    moversTitle: "🏆 Крупнейшие движения за 7 дней", gainers: "Лидеры роста", losers: "Лидеры падения", moversNotice: "Рассчитывается только среди активов из списка наблюдения, автообновление каждые 30 минут.", noData: "Нет данных",
+    pricesTitle: "Живые цены из списка наблюдения", notLoaded: "не загружено",
+    currencyTitle: "Курсы валют (на основе USD)", currencyErr: "Не удалось загрузить курсы валют.",
+    sectorsTitle: "Состояние по секторам (пример)", sectorsNotice: "На бесплатном тарифе нет live-потока по секторным индексам, поэтому раздел пока демонстрационный.",
+    newsTitle: "Живые новости рынка", newsErr: "Не удалось загрузить новости.",
+    watchlistTitle: "Список наблюдения", thSymbol: "Тикер", thName: "Название", thPrice: "Цена", thChange: "Изм.",
+    addSymPh: "Тикер (напр. MSFT)", addNamePh: "Название", addBtn: "Добавить",
+    adminNotice: "Этот список сохраняется только в вашем браузере. Тип \"Акция\" получает цену через Twelve Data, \"Крипто\" — через CoinGecko.",
+    typeStock: "Акция", typeCrypto: "Крипто", typeOther: "Другое",
+    footerNote: "Meridian Markets — живые данные через Twelve Data, CoinGecko и Marketaux.",
+    tabLine: "Линия", tabArea: "Область", tabBar: "Столбцы",
+    statLow: "Мин. за период", statHigh: "Макс. за период", statChange: "Изменение за период", chartErr: "Не удалось загрузить график."
+  },
+  en: {
+    headerSub: "GLOBAL MARKET ANALYSIS · live data", splashSub: "LOADING MARKET ANALYSIS...", splashHint: "Tap to continue",
+    live: "🟢 Live data", loading: "Loading...", admin: "Admin panel", adminOn: "Admin: on",
+    searchTitle: "Search an asset", searchPlaceholder: "Enter ticker (e.g. NFLX, MSFT)", searchBtn: "Search",
+    searching: "Searching...", notFound: "Not found. Check the ticker (e.g. AAPL, TSLA).", searchErr: "An error occurred, please try again.", added: "Added ✓", addBtnResult: "+ Add",
+    moversTitle: "🏆 Biggest moves — last 7 days", gainers: "Top gainers", losers: "Top losers", moversNotice: "Calculated only among watchlist assets, auto-refreshes every 30 minutes.", noData: "No data",
+    pricesTitle: "Live watchlist prices", notLoaded: "not loaded",
+    currencyTitle: "Exchange rates (USD base)", currencyErr: "Could not load exchange rates.",
+    sectorsTitle: "Sector performance (sample)", sectorsNotice: "The free tier has no live feed for sector indices, so this section is currently a sample.",
+    newsTitle: "Live market news", newsErr: "Could not load news.",
+    watchlistTitle: "Watchlist", thSymbol: "Symbol", thName: "Name", thPrice: "Price", thChange: "Chg.",
+    addSymPh: "Ticker (e.g. MSFT)", addNamePh: "Name", addBtn: "Add",
+    adminNotice: "This list is saved only in your browser. \"Stock\" type fetches price via Twelve Data, \"Crypto\" via CoinGecko.",
+    typeStock: "Stock", typeCrypto: "Crypto", typeOther: "Other",
+    footerNote: "Meridian Markets — live data via Twelve Data, CoinGecko and Marketaux.",
+    tabLine: "Line", tabArea: "Area", tabBar: "Bars",
+    statLow: "Period low", statHigh: "Period high", statChange: "Period change", chartErr: "Could not load the chart."
+  },
+  zh: {
+    headerSub: "全球市场分析 · 实时数据", splashSub: "正在加载市场分析...", splashHint: "点击继续",
+    live: "🟢 实时数据", loading: "加载中...", admin: "管理面板", adminOn: "管理：开启",
+    searchTitle: "搜索资产", searchPlaceholder: "输入代码（如 NFLX, MSFT）", searchBtn: "搜索",
+    searching: "搜索中...", notFound: "未找到，请检查代码（如 AAPL, TSLA）。", searchErr: "发生错误，请重试。", added: "已添加 ✓", addBtnResult: "+ 添加",
+    moversTitle: "🏆 过去7天最大涨跌", gainers: "涨幅榜", losers: "跌幅榜", moversNotice: "仅在关注列表资产中计算，每30分钟自动刷新。", noData: "暂无数据",
+    pricesTitle: "关注列表实时价格", notLoaded: "未加载",
+    currencyTitle: "汇率（以美元为基础）", currencyErr: "无法加载汇率。",
+    sectorsTitle: "板块表现（示例）", sectorsNotice: "免费套餐没有板块指数的实时数据源，此部分暂为示例。",
+    newsTitle: "实时市场新闻", newsErr: "无法加载新闻。",
+    watchlistTitle: "关注列表", thSymbol: "代码", thName: "名称", thPrice: "价格", thChange: "涨跌",
+    addSymPh: "代码（如 MSFT）", addNamePh: "名称", addBtn: "添加",
+    adminNotice: "此列表仅保存在您的浏览器中。“股票”类型通过 Twelve Data 获取价格，“加密货币”通过 CoinGecko 获取。",
+    typeStock: "股票", typeCrypto: "加密货币", typeOther: "其他",
+    footerNote: "Meridian Markets — 通过 Twelve Data、CoinGecko 和 Marketaux 提供实时数据。",
+    tabLine: "折线图", tabArea: "面积图", tabBar: "柱状图",
+    statLow: "期间最低", statHigh: "期间最高", statChange: "期间涨跌幅", chartErr: "无法加载图表。"
+  }
+};
+let currentLang = localStorage.getItem('lang') || 'uz';
+function t(key){ return (I18N[currentLang] && I18N[currentLang][key]) || I18N.uz[key] || key; }
+
+function applyLanguage(lang){
+  currentLang = lang;
+  localStorage.setItem('lang', lang);
+  document.documentElement.lang = lang;
+  document.querySelectorAll('[data-i18n]').forEach(el => { el.textContent = t(el.getAttribute('data-i18n')); });
+  document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { el.placeholder = t(el.getAttribute('data-i18n-placeholder')); });
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.dataset.lang === lang));
+  document.getElementById('adminToggle').textContent = adminMode ? t('adminOn') : t('admin');
+  renderWatchlist();
+  renderIndicesFromWatchlist();
+  renderSectors();
+}
+
+document.getElementById('langSwitch').addEventListener('click', e => {
+  const btn = e.target.closest('.lang-btn');
+  if(btn) applyLanguage(btn.dataset.lang);
+});
+
+const SECTORS = [
+  {name:"Communication Serv.", pct:-5.2},
+  {name:"Cons. Discretionary", pct:-5.1},
+  {name:"Information Tech.", pct:-2.4},
+  {name:"Cons. Staples", pct:-1.1},
+  {name:"Industrials", pct:0.3},
+  {name:"Energy", pct:1.8},
+  {name:"Utilities", pct:0.6},
+].sort((a,b)=>b.pct-a.pct);
+
+let watchlist = JSON.parse(localStorage.getItem('watchlist_v4') || 'null') || [
+  {symbol:"AAPL", name:"Apple Inc.", type:"Aksiya"},
+  {symbol:"MSFT", name:"Microsoft Corp.", type:"Aksiya"},
+  {symbol:"GOOGL", name:"Alphabet Inc.", type:"Aksiya"},
+  {symbol:"AMZN", name:"Amazon.com Inc.", type:"Aksiya"},
+  {symbol:"NVDA", name:"NVIDIA Corp.", type:"Aksiya"},
+  {symbol:"TSLA", name:"Tesla Inc.", type:"Aksiya"},
+  {symbol:"META", name:"Meta Platforms", type:"Aksiya"},
+  {symbol:"bitcoin", name:"Bitcoin", type:"Kripto"},
+  {symbol:"ethereum", name:"Ethereum", type:"Kripto"},
+  {symbol:"solana", name:"Solana", type:"Kripto"},
+  {symbol:"ripple", name:"XRP", type:"Kripto"},
+];
+let adminMode = false;
+let liveData = {};
+
+function color(p){ return p>=0 ? "#4ADE80" : "#F87171"; }
+function save(){ localStorage.setItem('watchlist_v4', JSON.stringify(watchlist)); }
+
+async function fetchStockQuote(symbol){
+  try{
+    const r = await fetch(`https://api.twelvedata.com/quote?symbol=${symbol}&apikey=${TWELVEDATA_KEY}`);
+    const d = await r.json();
+    if(!d.close || d.status === "error") return null;
+    return { price: parseFloat(d.close), pct: parseFloat(d.percent_change) };
+  } catch(e){ return null; }
+}
+
+async function fetchCryptoPrice(id){
+  try{
+    const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${id}&vs_currencies=usd&include_24hr_change=true`);
+    const d = await r.json();
+    if(!d[id]) return null;
+    return { price: d[id].usd, pct: d[id].usd_24h_change };
+  } catch(e){ return null; }
+}
+
+async function loadWatchlistPrices(){
+  const stockSymbols = watchlist.filter(w => w.type !== "Kripto").map(w => w.symbol);
+  const cryptoIds = watchlist.filter(w => w.type === "Kripto").map(w => w.symbol);
+
+  if(stockSymbols.length){
+    try{
+      const r = await fetch(`https://api.twelvedata.com/quote?symbol=${stockSymbols.join(",")}&apikey=${TWELVEDATA_KEY}`);
+      const d = await r.json();
+      if(stockSymbols.length === 1){
+        if(d.close) liveData[stockSymbols[0]] = { price: parseFloat(d.close), pct: parseFloat(d.percent_change) };
+      } else {
+        stockSymbols.forEach(s => {
+          const q = d[s];
+          if(q && q.close) liveData[s] = { price: parseFloat(q.close), pct: parseFloat(q.percent_change) };
+        });
+      }
+    } catch(e){ /* ignore, keep last known values */ }
+  }
+
+  if(cryptoIds.length){
+    try{
+      const r = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${cryptoIds.join(",")}&vs_currencies=usd&include_24hr_change=true`);
+      const d = await r.json();
+      cryptoIds.forEach(id => {
+        if(d[id]) liveData[id] = { price: d[id].usd, pct: d[id].usd_24h_change };
+      });
+    } catch(e){ /* ignore */ }
+  }
+
+  renderWatchlist();
+  renderIndicesFromWatchlist();
+  document.getElementById('liveBadge').textContent = t('live');
+}
+
+function renderIndicesFromWatchlist(){
+  const grid = document.getElementById('indicesGrid');
+  grid.innerHTML = watchlist.map(w => {
+    const d = liveData[w.symbol];
+    if(!d) return `<div class="idx-card"><div class="nm">${w.name}</div><div class="loading">${t('notLoaded')}</div></div>`;
+    return `<div class="idx-card">
+      <div class="nm">${w.name}</div>
+      <div class="val">${d.price.toLocaleString(undefined,{maximumFractionDigits:2})}</div>
+      <div class="pc" style="color:${color(d.pct)}">${d.pct>=0?"+":""}${d.pct.toFixed(2)}%</div>
+    </div>`;
+  }).join("");
+}
+
+function renderSectors(){
+  document.getElementById('sectorsList').innerHTML = SECTORS.map(s => `
+    <div class="sector-row">
+      <div class="label">${s.name}</div>
+      <div class="bar-bg"><div class="bar-fill" style="width:${Math.min(100,Math.abs(s.pct)*14)}%;background:${color(s.pct)}"></div></div>
+      <div class="val" style="color:${color(s.pct)}">${s.pct>=0?"+":""}${s.pct.toFixed(1)}%</div>
+    </div>`).join("");
+}
+
+async function loadNews(){
+  try{
+    const r = await fetch(`https://api.marketaux.com/v1/news/all?language=en&filter_entities=true&limit=8&api_token=${MARKETAUX_KEY}`);
+    const d = await r.json();
+    if(!d.data || !d.data.length) throw new Error("empty");
+    document.getElementById('newsList').innerHTML = d.data.map(n => `
+      <div class="news-item">
+        <span class="news-tag">${(n.source||"NEWS").toUpperCase()}</span>
+        <p><a href="${n.url}" target="_blank" rel="noopener">${n.title}</a></p>
+      </div>`).join("");
+  } catch(e){
+    document.getElementById('newsList').innerHTML = `<div class="loading">${t('newsErr')}</div>`;
+  }
+}
+
+function typeLabel(type){
+  if(type === "Aksiya") return t('typeStock');
+  if(type === "Kripto") return t('typeCrypto');
+  return t('typeOther');
+}
+
+function renderWatchlist(){
+  document.getElementById('watchlistBody').innerHTML = watchlist.map(w => {
+    const d = liveData[w.symbol];
+    return `<tr class="wl-row" onclick="openChartModal('${w.symbol}')">
+      <td>${w.symbol}<div><span class="type-pill">${typeLabel(w.type)}</span></div></td>
+      <td>${w.name}</td>
+      <td class="num">${d ? d.price.toLocaleString(undefined,{maximumFractionDigits:2}) : "..."}</td>
+      <td class="num" style="color:${d?color(d.pct):'#8B92A5'}">${d ? (d.pct>=0?"+":"")+d.pct.toFixed(2)+"%" : "..."}</td>
+      <td>${adminMode ? `<button class="del-btn" onclick="event.stopPropagation();removeItem('${w.symbol}')">✕</button>` : ""}</td>
+    </tr>`;
+  }).join("");
+}
+
+let currentChartData = null;
+let currentChartType = 'line';
+
+async function openChartModal(symbol){
+  const item = watchlist.find(w => w.symbol === symbol);
+  if(!item) return;
+  document.getElementById('chartOverlay').style.display = 'flex';
+  document.getElementById('chartTitle').textContent = item.name;
+  const d = liveData[symbol];
+  document.getElementById('chartPrice').innerHTML = d ? `<span style="color:${color(d.pct)}">${d.price.toLocaleString(undefined,{maximumFractionDigits:2})} (${d.pct>=0?"+":""}${d.pct.toFixed(2)}%)</span>` : "—";
+  document.getElementById('chartArea').innerHTML = `<div class="loading">Yuklanmoqda...</div>`;
+  document.getElementById('chartStats').innerHTML = "";
+  currentChartType = 'line';
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.toggle('active', t.dataset.type === 'line'));
+
+  try{
+    let candles = [];
+    if(item.type === "Kripto"){
+      const r = await fetch(`https://api.coingecko.com/api/v3/coins/${symbol}/ohlc?vs_currency=usd&days=30`);
+      const raw = await r.json();
+      candles = raw.map(c => ({ o:c[1], h:c[2], l:c[3], c:c[4] }));
+    } else {
+      const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${symbol}&interval=1day&outputsize=30&apikey=${TWELVEDATA_KEY}`);
+      const d2 = await r.json();
+      if(!d2.values) throw new Error("no data");
+      candles = d2.values.map(v => ({ o:parseFloat(v.open), h:parseFloat(v.high), l:parseFloat(v.low), c:parseFloat(v.close) })).reverse();
+    }
+    currentChartData = candles;
+    renderChart();
+  } catch(e){
+    document.getElementById('chartArea').innerHTML = `<div class="loading">${t('chartErr')}</div>`;
+  }
+}
+
+function closeChartModal(){
+  document.getElementById('chartOverlay').style.display = 'none';
+  currentChartData = null;
+}
+
+function setChartType(type){
+  currentChartType = type;
+  document.querySelectorAll('.chart-tab').forEach(t => t.classList.toggle('active', t.dataset.type === type));
+  renderChart();
+}
+
+function renderChart(){
+  const box = document.getElementById('chartArea');
+  const statsBox = document.getElementById('chartStats');
+  if(!currentChartData || !currentChartData.length){ box.innerHTML = `<div class="loading">${t('noData')}.</div>`; return; }
+  const candles = currentChartData;
+  const closes = candles.map(c => c.c);
+  const highs = candles.map(c => c.h);
+  const lows = candles.map(c => c.l);
+  const min = Math.min(...lows), max = Math.max(...highs);
+  const range = (max - min) || 1;
+  const w = 320, h = 160, pad = 6;
+  const n = candles.length;
+  const step = (w - pad*2) / (n - 1 || 1);
+  const yOf = v => h - pad - ((v - min) / range) * (h - pad*2);
+  const up = closes[closes.length-1] >= closes[0];
+  const col = up ? "#4ADE80" : "#F87171";
+
+  let svg = "";
+  if(currentChartType === 'line'){
+    const coords = closes.map((c,i) => `${(pad+i*step).toFixed(1)},${yOf(c).toFixed(1)}`).join(" ");
+    svg = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none"><polyline points="${coords}" fill="none" stroke="${col}" stroke-width="2"/></svg>`;
+  } else if(currentChartType === 'area'){
+    const coords = closes.map((c,i) => `${(pad+i*step).toFixed(1)},${yOf(c).toFixed(1)}`).join(" L ");
+    const first = `${pad},${yOf(closes[0]).toFixed(1)}`;
+    const path = `M ${first} L ${coords} L ${(pad+(n-1)*step).toFixed(1)},${h-pad} L ${pad},${h-pad} Z`;
+    svg = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">
+      <defs><linearGradient id="areaGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="${col}" stop-opacity="0.45"/>
+        <stop offset="100%" stop-color="${col}" stop-opacity="0"/>
+      </linearGradient></defs>
+      <path d="${path}" fill="url(#areaGrad)" stroke="${col}" stroke-width="2"/>
+    </svg>`;
+  } else {
+    const barW = Math.max(2, step * 0.5);
+    const bars = candles.map((c,i) => {
+      const x = pad + i*step;
+      const yHigh = yOf(c.h), yLow = yOf(c.l);
+      const bc = c.c >= c.o ? "#4ADE80" : "#F87171";
+      return `<line x1="${x}" y1="${yHigh.toFixed(1)}" x2="${x}" y2="${yLow.toFixed(1)}" stroke="${bc}" stroke-width="${barW.toFixed(1)}" stroke-linecap="round"/>`;
+    }).join("");
+    svg = `<svg width="100%" height="${h}" viewBox="0 0 ${w} ${h}" preserveAspectRatio="none">${bars}</svg>`;
+  }
+  box.innerHTML = svg;
+
+  const changePct = ((closes[closes.length-1] - closes[0]) / closes[0] * 100).toFixed(2);
+  statsBox.innerHTML = `
+    <div>${t('statLow')}<b>${min.toLocaleString(undefined,{maximumFractionDigits:2})}</b></div>
+    <div>${t('statHigh')}<b>${max.toLocaleString(undefined,{maximumFractionDigits:2})}</b></div>
+    <div>${t('statChange')}<b style="color:${changePct>=0?'#4ADE80':'#F87171'}">${changePct>=0?"+":""}${changePct}%</b></div>
+  `;
+}
+
+function addItem(){
+  const sym = document.getElementById('fSym').value.trim();
+  if(!sym) return;
+  const type = document.getElementById('fType').value;
+  watchlist.push({
+    symbol: type === "Kripto" ? sym.toLowerCase() : sym.toUpperCase(),
+    name: document.getElementById('fName').value || sym,
+    type: type
+  });
+  save();
+  document.getElementById('fSym').value=''; document.getElementById('fName').value='';
+  loadWatchlistPrices();
+}
+
+function removeItem(sym){
+  watchlist = watchlist.filter(w => w.symbol !== sym);
+  save(); renderWatchlist(); renderIndicesFromWatchlist();
+}
+
+function toggleAdmin(){
+  adminMode = !adminMode;
+  document.getElementById('adminExtra').style.display = adminMode ? 'block' : 'none';
+  document.getElementById('adminToggle').textContent = adminMode ? t('adminOn') : t('admin');
+  document.getElementById('adminToggle').classList.toggle('primary', adminMode);
+  renderWatchlist();
+}
+
+function renderTicker(){
+  const items = watchlist.map(w => ({name:w.name, pct: (liveData[w.symbol]?.pct)||0}));
+  const all = [...items, ...SECTORS];
+  const html = all.map(it => `<span class="tk-item"><span class="tk-name">${it.name}</span><span class="tk-pct" style="color:${color(it.pct)}">${it.pct>=0?"▲":"▼"} ${Math.abs(it.pct).toFixed(2)}%</span></span>`).join("");
+  document.getElementById('tickerTrack').innerHTML = html + html;
+}
+
+async function searchSymbol(){
+  const box = document.getElementById('searchResult');
+  const sym = document.getElementById('searchInput').value.trim().toUpperCase();
+  if(!sym) return;
+  box.innerHTML = `<div class="loading" style="margin-top:8px;">${t('searching')}</div>`;
+  try{
+    const r = await fetch(`https://api.twelvedata.com/quote?symbol=${sym}&apikey=${TWELVEDATA_KEY}`);
+    const d = await r.json();
+    if(!d.close || d.status === "error"){
+      box.innerHTML = `<div class="loading" style="margin-top:8px;">${t('notFound')}</div>`;
+      return;
+    }
+    const price = parseFloat(d.close), pct = parseFloat(d.percent_change);
+    box.innerHTML = `<div class="search-result">
+      <div><b>${d.symbol}</b> — ${d.name || sym}<br><span style="font-family:'JetBrains Mono',monospace;color:${color(pct)}">${price.toLocaleString(undefined,{maximumFractionDigits:2})} (${pct>=0?"+":""}${pct.toFixed(2)}%)</span></div>
+      <button class="btn primary" onclick="quickAdd('${d.symbol}','${(d.name||sym).replace(/'/g,"")}')">${t('addBtnResult')}</button>
+    </div>`;
+  } catch(e){
+    box.innerHTML = `<div class="loading" style="margin-top:8px;">${t('searchErr')}</div>`;
+  }
+}
+
+function quickAdd(sym, name){
+  if(watchlist.some(w => w.symbol === sym)) return;
+  watchlist.push({ symbol: sym, name: name, type: "Aksiya" });
+  save();
+  document.getElementById('searchResult').innerHTML = `<div class="loading" style="margin-top:8px;">${t('added')}</div>`;
+  loadWatchlistPrices();
+}
+
+async function loadCurrencies(){
+  const grid = document.getElementById('currencyGrid');
+  try{
+    const r = await fetch(`https://open.er-api.com/v6/latest/USD`);
+    const d = await r.json();
+    const pairs = [
+      {code:"UZS", label:"1 USD → UZS"},
+      {code:"EUR", label:"1 USD → EUR"},
+      {code:"GBP", label:"1 USD → GBP"},
+      {code:"JPY", label:"1 USD → JPY"},
+      {code:"RUB", label:"1 USD → RUB"},
+      {code:"CNY", label:"1 USD → CNY"},
+    ];
+    grid.innerHTML = pairs.map(p => `
+      <div class="currency-card">
+        <div class="nm">${p.label}</div>
+        <div class="val">${d.rates[p.code] ? d.rates[p.code].toLocaleString(undefined,{maximumFractionDigits:2}) : "—"}</div>
+      </div>`).join("");
+  } catch(e){
+    grid.innerHTML = `<div class="loading">${t('currencyErr')}</div>`;
+  }
+}
+
+async function computeWeeklyMovers(){
+  const results = [];
+  for(const item of watchlist){
+    try{
+      let changePct = null;
+      if(item.type === "Kripto"){
+        const r = await fetch(`https://api.coingecko.com/api/v3/coins/${item.symbol}/market_chart?vs_currency=usd&days=7&interval=daily`);
+        const d = await r.json();
+        const prices = d.prices.map(p => p[1]);
+        if(prices.length >= 2) changePct = (prices[prices.length-1] - prices[0]) / prices[0] * 100;
+      } else {
+        const r = await fetch(`https://api.twelvedata.com/time_series?symbol=${item.symbol}&interval=1day&outputsize=7&apikey=${TWELVEDATA_KEY}`);
+        const d = await r.json();
+        if(d.values && d.values.length >= 2){
+          const closes = d.values.map(v => parseFloat(v.close)).reverse();
+          changePct = (closes[closes.length-1] - closes[0]) / closes[0] * 100;
+        }
+        await new Promise(res => setTimeout(res, 700));
+      }
+      if(changePct !== null) results.push({ symbol:item.symbol, name:item.name, pct:changePct });
+    } catch(e){ /* skip this item */ }
+  }
+  results.sort((a,b) => b.pct - a.pct);
+  const gainers = results.filter(r => r.pct > 0).slice(0, 5);
+  const losers = results.filter(r => r.pct < 0).slice(-5).reverse();
+
+  const rowHtml = r => `<div class="mover-row" onclick="openChartModal('${r.symbol}')">
+    <span>${r.name}</span>
+    <span class="mv-pct" style="color:${color(r.pct)}">${r.pct>=0?"+":""}${r.pct.toFixed(2)}%</span>
+  </div>`;
+
+  document.getElementById('topGainers').innerHTML = gainers.length ? gainers.map(rowHtml).join("") : `<div class="loading">${t('noData')}</div>`;
+  document.getElementById('topLosers').innerHTML = losers.length ? losers.map(rowHtml).join("") : `<div class="loading">${t('noData')}</div>`;
+}
+
+function dismissSplash(){
+  const el = document.getElementById('splash');
+  if(el) el.classList.add('hide');
+}
+
+async function init(){
+  applyLanguage(currentLang);
+  renderSectors();
+  await loadWatchlistPrices();
+  renderTicker();
+  loadNews();
+  loadCurrencies();
+  computeWeeklyMovers();
+  setTimeout(dismissSplash, 2600);
+  setInterval(async () => { await loadWatchlistPrices(); renderTicker(); }, 60000);
+  setInterval(loadNews, 18 * 60000);
+  setInterval(loadCurrencies, 30 * 60000);
+  setInterval(computeWeeklyMovers, 30 * 60000);
+}
+init();
+</script>
+</body>
+</html>
