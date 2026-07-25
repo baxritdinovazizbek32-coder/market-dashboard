@@ -1,1 +1,0 @@
-The user accidentally deleted the downloaded HTML file from their device, so they'll need to grab it again—they can either scroll back up in our conversation to find the version I shared earlier, or I can provide it again.
