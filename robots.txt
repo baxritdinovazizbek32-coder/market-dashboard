@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://baxritdinovazizbek32-coder.github.io/market-dashboard/sitemap.xml
