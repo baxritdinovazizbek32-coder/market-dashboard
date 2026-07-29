@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Markets</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;}
+body{background:#0b0e11;color:#d1d4dc;font-size:13px;line-height:1.4;}
+a{text-decoration:none;color:inherit;}
+
+/* Header */
+.header{background:#151a21;border-bottom:1px solid #2a2e39;padding:0 12px;height:48px;display:flex;align-items:center;gap:12px;position:sticky;top:0;z-index:100;}
+.logo{font-size:16px;font-weight:700;color:#fff;}
+.logo span{color:#2962ff;}
+.nav{display:flex;gap:2px;margin-left:auto;}
+.nav-btn{padding:5px 10px;border-radius:3px;border:none;background:transparent;color:#868993;font-size:12px;font-weight:600;cursor:pointer;}
+.nav-btn.active{background:#2962ff;color:#fff;}
+.search{flex:1;max-width:220px;}
+.search input{width:100%;padding:6px 10px;background:#1c2128;border:1px solid #2a2e39;border-radius:3px;color:#fff;font-size:12px;outline:none;}
+
+/* Ticker */
+.ticker{background:#1c2128;border-bottom:1px solid #2a2e39;padding:5px 12px;font-size:11px;overflow:hidden;white-space:nowrap;}
+.ticker-item{display:inline-block;margin-right:20px;}
+.ticker-item .up{color:#089981;}.ticker-item .down{color:#f23645;}
+
+/* Layout */
+.container{max-width:1200px;margin:0 auto;padding:10px;display:grid;grid-template-columns:220px 1fr;gap:10px;}
+@media(max-width:800px){.container{grid-template-columns:1fr;}}
+
+/* Sidebar */
+.sidebar{background:#151a21;border:1px solid #2a2e39;border-radius:3px;}
+.sidebar-h{padding:8px 10px;border-bottom:1px solid #2a2e39;font-weight:600;font-size:11px;}
+.sidebar-i{padding:7px 10px;border-bottom:1px solid #2a2e39;display:flex;justify-content:space-between;cursor:pointer;}
+.sidebar-i:hover{background:#1c2128;}
+.sidebar-n{font-size:12px;}.sidebar-s{font-size:10px;color:#5d606b;}
+.sidebar-p{font-weight:600;font-size:12px;text-align:right;}
+.sidebar-c{font-size:10px;}.sidebar-c.up{color:#089981;}.sidebar-c.down{color:#f23645;}
+
+/* Main */
+.main{display:flex;flex-direction:column;gap:10px;}
+.box{background:#151a21;border:1px solid #2a2e39;border-radius:3px;overflow:hidden;}
+.box-h{padding:8px 10px;border-bottom:1px solid #2a2e39;font-weight:600;font-size:12px;display:flex;justify-content:space-between;align-items:center;}
+.box-sub{font-size:10px;color:#868993;font-weight:400;}
+
+/* Table */
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{text-align:left;padding:7px 10px;font-size:10px;color:#868993;text-transform:uppercase;background:#1c2128;border-bottom:1px solid #2a2e39;font-weight:600;}
+td{padding:7px 10px;border-bottom:1px solid #2a2e39;white-space:nowrap;}
+tr:hover{background:#1c2128;}
+.rank{color:#868993;width:25px;font-size:11px;}
+.asset{display:flex;align-items:center;gap:6px;}
+.asset-icon{width:22px;height:22px;border-radius:50%;background:#1c2128;display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;overflow:hidden;}
+.asset-icon img{width:100%;height:100%;object-fit:cover;}
+.asset-n{font-weight:600;}.asset-s{font-size:10px;color:#5d606b;}
+.price{font-weight:600;font-family:monospace;}
+.change{font-size:11px;font-weight:600;}.change.up{color:#089981;}.change.down{color:#f23645;}
+.cap,.vol{color:#868993;font-size:11px;}
+
+/* Tabs */
+.tabs{display:flex;gap:1px;background:#1c2128;padding:2px;border-radius:3px;width:fit-content;}
+.tab{padding:4px 12px;border-radius:2px;border:none;background:transparent;color:#868993;font-size:11px;font-weight:600;cursor:pointer;}
+.tab.active{background:#2a2e39;color:#fff;}
+
+/* Section */
+.sec{display:none;}.sec.active{display:block;}
+
+/* News */
+.news{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;}
+.news-card{background:#151a21;border:1px solid #2a2e39;border-radius:3px;padding:10px;}
+.news-tag{font-size:9px;font-weight:700;text-transform:uppercase;padding:1px 5px;border-radius:2px;display:inline-block;margin-bottom:4px;background:rgba(41,98,255,.15);color:#2962ff;}
+.news-t{font-weight:600;font-size:12px;line-height:1.3;margin-bottom:3px;}
+.news-time{font-size:10px;color:#868993;}
+
+/* Footer */
+.footer{border-top:1px solid #2a2e39;margin-top:12px;padding:12px;text-align:center;color:#5d606b;font-size:10px;}
+
+/* Loading overlay */
+.loading{position:fixed;top:0;left:0;right:0;height:2px;background:#1c2128;z-index:200;}
+.loading-bar{height:100%;width:0%;background:#2962ff;animation:load 1.5s ease-out forwards;}
+@keyframes load{0%{width:0%;}50%{width:70%;}100%{width:100%;opacity:0;}}
+</style>
+</head>
+<body>
+<div class="loading"><div class="loading-bar"></div></div>
+
+<header class="header">
+<a href="#" class="logo">📈 <span>Meridian</span> Markets</a>
+<div class="search"><input type="text" id="s" placeholder="Qidirish..." autocomplete="off"></div>
+<nav class="nav">
+<button class="nav-btn active" onclick="tab('c',this)">Kripto</button>
+<button class="nav-btn" onclick="tab('s',this)">Aksiyalar</button>
+<button class="nav-btn" onclick="tab('f',this)">Forex</button>
+<button class="nav-btn" onclick="tab('n',this)">Yangiliklar</button>
+</nav>
+</header>
+
+<div class="ticker">
+<span class="ticker-item"><span>BTC</span> <span class="up" id="tB">▲ 2.15%</span></span>
+<span class="ticker-item"><span>ETH</span> <span class="up" id="tE">▲ 1.87%</span></span>
+<span class="ticker-item"><span>S&P</span> <span class="up">▲ 0.45%</span></span>
+<span class="ticker-item"><span>NAS</span> <span class="up">▲ 0.62%</span></span>
+<span class="ticker-item"><span>EUR</span> <span class="down">▼ 0.08%</span></span>
+<span class="ticker-item"><span>GBP</span> <span class="up">▲ 0.23%</span></span>
+<span class="ticker-item"><span>JPY</span> <span class="down">▼ 0.15%</span></span>
+<span class="ticker-item"><span>GOLD</span> <span class="up">▲ 0.55%</span></span>
+</div>
+
+<div class="container">
+<aside class="sidebar">
+<div class="sidebar-h">⭐ Kuzatuv</div>
+<div id="wl">
+<div class="sidebar-i"><div><div class="sidebar-n">Bitcoin</div><div class="sidebar-s">BTC</div></div><div><div class="sidebar-p">$67,245</div><div class="sidebar-c up">▲ 2.15%</div></div></div>
+<div class="sidebar-i"><div><div class="sidebar-n">Ethereum</div><div class="sidebar-s">ETH</div></div><div><div class="sidebar-p">$3,456</div><div class="sidebar-c up">▲ 1.87%</div></div></div>
+<div class="sidebar-i"><div><div class="sidebar-n">Apple</div><div class="sidebar-s">AAPL</div></div><div><div class="sidebar-p">$189.52</div><div class="sidebar-c up">▲ 1.25%</div></div></div>
+<div class="sidebar-i"><div><div class="sidebar-n">Microsoft</div><div class="sidebar-s">MSFT</div></div><div><div class="sidebar-p">$425.18</div><div class="sidebar-c down">▼ 0.82%</div></div></div>
+</div>
+</aside>
+
+<div class="main">
+
+<!-- CRYPTO -->
+<div class="sec active" id="c">
+<div class="box">
+<div class="box-h">🔥 Kriptovalyutalar <span class="box-sub">Real vaqt narxlar</span></div>
+<table>
+<thead><tr><th class="rank">#</th><th>Aktiv</th><th>Narx</th><th>24s</th><th>Kap</th><th>Hajm</th></tr></thead>
+<tbody id="ct">
+<tr><td class="rank">1</td><td><div class="asset"><div class="asset-icon" style="background:#f7931a;color:#fff;">₿</div><div><div class="asset-n">Bitcoin</div><div class="asset-s">BTC</div></div></div></td><td class="price" id="p0">$67,245.00</td><td class="change up" id="c0">▲ 2.15%</td><td class="cap">$1.32T</td><td class="vol">$35.2B</td></tr>
+<tr><td class="rank">2</td><td><div class="asset"><div class="asset-icon" style="background:#627eea;color:#fff;">Ξ</div><div><div class="asset-n">Ethereum</div><div class="asset-s">ETH</div></div></div></td><td class="price" id="p1">$3,456.78</td><td class="change up" id="c1">▲ 1.87%</td><td class="cap">$415.2B</td><td class="vol">$18.5B</td></tr>
+<tr><td class="rank">3</td><td><div class="asset"><div class="asset-icon" style="background:#f0b90b;color:#fff;">B</div><div><div class="asset-n">BNB</div><div class="asset-s">BNB</div></div></div></td><td class="price" id="p2">$589.12</td><td class="change down" id="c2">▼ 0.45%</td><td class="cap">$86.5B</td><td class="vol">$1.2B</td></tr>
+<tr><td class="rank">4</td><td><div class="asset"><div class="asset-icon" style="background:#2775ca;color:#fff;">U</div><div><div class="asset-n">USDC</div><div class="asset-s">USDC</div></div></div></td><td class="price" id="p3">$1.00</td><td class="change up" id="c3">▲ 0.01%</td><td class="cap">$33.8B</td><td class="vol">$8.5B</td></tr>
+<tr><td class="rank">5</td><td><div class="asset"><div class="asset-icon" style="background:#14f195;color:#000;">S</div><div><div class="asset-n">Solana</div><div class="asset-s">SOL</div></div></div></td><td class="price" id="p4">$145.23</td><td class="change up" id="c4">▲ 5.67%</td><td class="cap">$65.2B</td><td class="vol">$3.8B</td></tr>
+<tr><td class="rank">6</td><td><div class="asset"><div class="asset-icon" style="background:#e84142;color:#fff;">A</div><div><div class="asset-n">Avalanche</div><div class="asset-s">AVAX</div></div></div></td><td class="price" id="p5">$28.45</td><td class="change down" id="c5">▼ 1.23%</td><td class="cap">$11.2B</td><td class="vol">$452M</td></tr>
+<tr><td class="rank">7</td><td><div class="asset"><div class="asset-icon" style="background:#0033ad;color:#fff;">C</div><div><div class="asset-n">Cardano</div><div class="asset-s">ADA</div></div></div></td><td class="price" id="p6">$0.45</td><td class="change up" id="c6">▲ 0.89%</td><td class="cap">$16.1B</td><td class="vol">$312M</td></tr>
+<tr><td class="rank">8</td><td><div class="asset"><div class="asset-icon" style="background:#26a17b;color:#fff;">T</div><div><div class="asset-n">TRON</div><div class="asset-s">TRX</div></div></div></td><td class="price" id="p7">$0.12</td><td class="change down" id="c7">▼ 0.56%</td><td class="cap">$10.8B</td><td class="vol">$298M</td></tr>
+<tr><td class="rank">9</td><td><div class="asset"><div class="asset-icon" style="background:#345d9d;color:#fff;">D</div><div><div class="asset-n">Dogecoin</div><div class="asset-s">DOGE</div></div></div></td><td class="price" id="p8">$0.13</td><td class="change up" id="c8">▲ 3.45%</td><td class="cap">$18.9B</td><td class="vol">$1.1B</td></tr>
+<tr><td class="rank">10</td><td><div class="asset"><div class="asset-icon" style="background:#8247e5;color:#fff;">P</div><div><div class="asset-n">Polygon</div><div class="asset-s">MATIC</div></div></div></td><td class="price" id="p9">$0.52</td><td class="change down" id="c9">▼ 0.78%</td><td class="cap">$5.1B</td><td class="vol">$245M</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- STOCKS -->
+<div class="sec" id="s">
+<div class="box">
+<div class="box-h">🏢 Aksiyalar <span class="box-sub">Dunyo bo'ylab kompaniyalar</span></div>
+<table>
+<thead><tr><th class="rank">#</th><th>Kompaniya</th><th>Narx</th><th>O'zgarish</th><th>Kap</th></tr></thead>
+<tbody>
+<tr><td class="rank">1</td><td><div class="asset"><div class="asset-icon" style="background:#555;color:#fff;font-size:8px;">AP</div><div><div class="asset-n">Apple Inc.</div><div class="asset-s">AAPL</div></div></div></td><td class="price">$189.52</td><td class="change up">▲ 1.25%</td><td class="cap">$2.95T</td></tr>
+<tr><td class="rank">2</td><td><div class="asset"><div class="asset-icon" style="background:#00a4ef;color:#fff;font-size:8px;">MS</div><div><div class="asset-n">Microsoft</div><div class="asset-s">MSFT</div></div></div></td><td class="price">$425.18</td><td class="change down">▼ 0.82%</td><td class="cap">$3.15T</td></tr>
+<tr><td class="rank">3</td><td><div class="asset"><div class="asset-icon" style="background:#4285f4;color:#fff;font-size:8px;">GO</div><div><div class="asset-n">Alphabet</div><div class="asset-s">GOOGL</div></div></div></td><td class="price">$175.34</td><td class="change up">▲ 0.45%</td><td class="cap">$2.18T</td></tr>
+<tr><td class="rank">4</td><td><div class="asset"><div class="asset-icon" style="background:#ff9900;color:#fff;font-size:8px;">AM</div><div><div class="asset-n">Amazon</div><div class="asset-s">AMZN</div></div></div></td><td class="price">$182.76</td><td class="change down">▼ 1.12%</td><td class="cap">$1.89T</td></tr>
+<tr><td class="rank">5</td><td><div class="asset"><div class="asset-icon" style="background:#76b900;color:#fff;font-size:8px;">NV</div><div><div class="asset-n">NVIDIA</div><div class="asset-s">NVDA</div></div></div></td><td class="price">$875.28</td><td class="change up">▲ 3.45%</td><td class="cap">$2.15T</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- FOREX -->
+<div class="sec" id="f">
+<div class="box">
+<div class="box-h">🌍 Valyuta Kurslari <span class="box-sub">USD asosida</span></div>
+<table>
+<thead><tr><th>Valyuta</th><th>Kurs</th><th>24s</th></tr></thead>
+<tbody>
+<tr><td><div class="asset"><div class="asset-icon" style="font-size:11px;background:transparent;">🇪🇺</div><div><div class="asset-n">Yevro</div><div class="asset-s">EUR</div></div></div></td><td class="price">0.9234</td><td class="change down">▼ 0.08%</td></tr>
+<tr><td><div class="asset"><div class="asset-icon" style="font-size:11px;background:transparent;">🇬🇧</div><div><div class="asset-n">Britaniya Funti</div><div class="asset-s">GBP</div></div></div></td><td class="price">0.7891</td><td class="change up">▲ 0.23%</td></tr>
+<tr><td><div class="asset"><div class="asset-icon" style="font-size:11px;background:transparent;">🇯🇵</div><div><div class="asset-n">Yapon Yenasi</div><div class="asset-s">JPY</div></div></div></td><td class="price">151.42</td><td class="change down">▼ 0.15%</td></tr>
+<tr><td><div class="asset"><div class="asset-icon" style="font-size:11px;background:transparent;">🇨🇳</div><div><div class="asset-n">Xitoy Yuani</div><div class="asset-s">CNY</div></div></div></td><td class="price">7.2456</td><td class="change up">▲ 0.05%</td></tr>
+<tr><td><div class="asset"><div class="asset-icon" style="font-size:11px;background:transparent;">🇺🇿</div><div><div class="asset-n">O'zbekiston So'mi</div><div class="asset-s">UZS</div></div></div></td><td class="price">12,580</td><td class="change up">▲ 0.12%</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+<!-- NEWS -->
+<div class="sec" id="n">
+<div class="box">
+<div class="box-h">📰 So'nggi Yangiliklar</div>
+<div class="news">
+<div class="news-card"><span class="news-tag">Kripto</span><div class="news-t">Bitcoin $70,000 chegarasini sinab ko'rmoqda</div><div class="news-time">2 soat oldin</div></div>
+<div class="news-card"><span class="news-tag">Forex</span><div class="news-t">FED stavkani o'zgartirmaslikni e'lon qildi</div><div class="news-time">4 soat oldin</div></div>
+<div class="news-card"><span class="news-tag">Aksiyalar</span><div class="news-t">NVIDIA yangi AI chipini taqdim etdi</div><div class="news-time">5 soat oldin</div></div>
+<div class="news-card"><span class="news-tag">Kripto</span><div class="news-t">Ethereum Dencun yangilanishi ishga tushdi</div><div class="news-time">7 soat oldin</div></div>
+<div class="news-card"><span class="news-tag">Aksiyalar</span><div class="news-t">Apple Vision Pro sotuvlari past</div><div class="news-time">8 soat oldin</div></div>
+<div class="news-card"><span class="news-tag">Forex</span><div class="news-t">Xitoy MB yengillik siyosatini davom ettirmoqda</div><div class="news-time">10 soat oldin</div></div>
+</div>
+</div>
+</div>
+
+</div>
+</div>
+
+<footer class="footer">
+<p>© 2026 Meridian Markets. Ma'lumotlar faqat ma'lumot uchun.</p>
+<p>Kripto: CoinGecko | Forex: ExchangeRate-API</p>
+</footer>
+
+<script>
+// Minimal JS - only updates data, doesn't create HTML
+function tab(id,btn){
+  document.querySelectorAll('.sec').forEach(s=>s.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-btn').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
+// Update crypto prices in background
+async function upd(){
+  try{
+    const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false&price_change_percentage=24h');
+    const d=await r.json();
+    d.forEach((c,i)=>{
+      const p=document.getElementById('p'+i);
+      const ch=document.getElementById('c'+i);
+      if(p) p.textContent='$'+c.current_price.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+      if(ch){
+        const v=c.price_change_percentage_24h||0;
+        ch.className='change '+(v>=0?'up':'down');
+        ch.textContent=(v>=0?'▲ ':'▼ ')+Math.abs(v).toFixed(2)+'%';
+      }
+    });
+    // Update ticker
+    const btc=d.find(x=>x.id==='bitcoin');
+    const eth=d.find(x=>x.id==='ethereum');
+    if(btc){const v=btc.price_change_percentage_24h||0;document.getElementById('tB').className=v>=0?'up':'down';document.getElementById('tB').textContent=(v>=0?'▲ ':'▼ ')+Math.abs(v).toFixed(2)+'%';}
+    if(eth){const v=eth.price_change_percentage_24h||0;document.getElementById('tE').className=v>=0?'up':'down';document.getElementById('tE').textContent=(v>=0?'▲ ':'▼ ')+Math.abs(v).toFixed(2)+'%';}
+  }catch(e){}
+}
+
+// Search filter
+document.getElementById('s').addEventListener('input',function(){
+  const q=this.value.toLowerCase();
+  document.querySelectorAll('#ct tr').forEach(tr=>{
+    tr.style.display=tr.textContent.toLowerCase().includes(q)?'':'none';
+  });
+});
+
+// Update every 60s
+setInterval(upd,60000);
+// Update once on load (after 1s)
+setTimeout(upd,1000);
+</script>
+</body>
+</html>
